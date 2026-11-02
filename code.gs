@@ -228,13 +228,23 @@ function handleStep3Finish(e) {
 // DASHBOARD CARD (Home Page with Separated Sections)
 // ============================================================================
 function buildDashboardCard() {
+
   const card = CardService.newCardBuilder();
   
+  const userProperties = PropertiesService.getUserProperties();
+  const serviceStatus = userProperties.getProperty('SERVICE_STATUS');  
+  let status = "🟢 Service Active"
+  if (serviceStatus === 'PAUSED') {
+    status = "🔴 Service Paused"
+  }
+
   card.setHeader(
     CardService.newCardHeader()
       .setTitle('Calendar Dashboard')
-      .setSubtitle('Coursework & Class Updates Sync')
+      .setSubtitle(status)
   );
+
+  
 
   // Section 1: Recently Added Coursework
   const courseworkSection = CardService.newCardSection().setHeader('Recently Added Coursework (Last 5)');
@@ -311,6 +321,8 @@ function buildSettingsCard() {
   const savedApiKey = userProperties.getProperty('GEMINI_API_KEY') || "";
   const savedEmailFilter = userProperties.getProperty('EMAIL_FILTER') || "";
   const savedCalendarId = userProperties.getProperty('TARGET_CALENDAR_ID') || "";
+  const serviceStatus = userProperties.getProperty('SERVICE_STATUS') || 'ACTIVE';
+  const isEnabled = (serviceStatus === 'ACTIVE');
 
   const card = CardService.newCardBuilder();
   card.setHeader(
@@ -349,8 +361,24 @@ function buildSettingsCard() {
   section.addWidget(calendarDropdown);
   card.addSection(section);
 
-  const actionSection = CardService.newCardSection();
+  const serviceSection = CardService.newCardSection();
+
+  const statusSwitch = CardService.newSwitch()
+    .setFieldName('service_toggle')
+    .setValue('enabled')
+    .setSelected(isEnabled)
+    .setOnChangeAction(CardService.newAction().setFunctionName('toggleServiceStatus'));
+
+  const statusWidget = CardService.newDecoratedText()
+    .setTopLabel("Auto-Sync Status")
+    .setText(isEnabled ? "🟢 Service Active (1h Auto-Sync)" : "🔴 Service Paused (Snoozed)")
+    .setSwitchControl(statusSwitch);
+
+  serviceSection.addWidget(statusWidget);
+  card.addSection(serviceSection);
   
+  const actionSection = CardService.newCardSection();
+
   const saveButton = CardService.newTextButton()
     .setText('💾 Save Settings')
     .setOnClickAction(CardService.newAction().setFunctionName('handleSettingsSave'));
@@ -456,14 +484,77 @@ function handleManualSync() {
     .build();
 }
 
+/**
+ * Callback handler when the Stop/Snooze toggle switch is toggled.
+ */
+function toggleServiceStatus(e) {
+  const userProperties = PropertiesService.getUserProperties();
+  const formInput = e.formInput || {};
+  const isToggledOn = formInput.service_toggle === 'enabled';
+
+  if (isToggledOn) {
+    userProperties.setProperty('SERVICE_STATUS', 'ACTIVE');
+    
+    // Option A: Set the last processed timestamp to NOW so it ignores 
+    // any emails that piled up while the service was snoozed.
+    userProperties.setProperty('LAST_SYNC_TIMESTAMP', new Date().getTime().toString());
+    
+    ensureAutoSyncTrigger();
+    
+    return CardService.newActionResponseBuilder()
+      .setNotification(CardService.newNotification().setText("✅ Sync service resumed! (Skipped past offline emails)"))
+      .setNavigation(CardService.newNavigation().updateCard(buildSettingsCard()))
+      .build();
+  } else {
+    userProperties.setProperty('SERVICE_STATUS', 'PAUSED');
+    
+    // Record the exact time the user paused the service
+    userProperties.setProperty('PAUSED_AT_TIMESTAMP', new Date().getTime().toString());
+    
+    removeAllSyncTriggers();
+    
+    return CardService.newActionResponseBuilder()
+      .setNotification(CardService.newNotification().setText("⏸️ Sync service paused."))
+      .setNavigation(CardService.newNavigation().updateCard(buildSettingsCard()))
+      .build();
+  }
+}
+/**
+ * Helper to safely delete existing background triggers.
+ */
+function removeAllSyncTriggers() {
+  const triggers = ScriptApp.getProjectTriggers();
+  for (let i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'autoSyncEmailToCalendar') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+}
+
+/**
+ * Helper to ensure only ONE 1-hour auto-sync trigger exists (prevents quota errors).
+ */
 function ensureAutoSyncTrigger() {
-  const existingTrigger = getUserProjectTrigger();
+  const triggers = ScriptApp.getProjectTriggers();
+  let existingTrigger = null;
+  
+  // Clean up any duplicates and find if a valid trigger already exists
+  for (let i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'autoSyncEmailToCalendar') {
+      if (!existingTrigger) {
+        existingTrigger = triggers[i]; // Keep the first valid trigger
+      } else {
+        ScriptApp.deleteTrigger(triggers[i]); // Delete duplicate triggers
+      }
+    }
+  }
+  
+  // Only create a new trigger if none exist at all
   if (!existingTrigger) {
-    ScriptApp.newTrigger('processEmailsToCalendar')
+    ScriptApp.newTrigger('autoSyncEmailToCalendar')
       .timeBased()
       .everyHours(1)
       .create();
-    Logger.log('[Setup] Automatically created 1-hour auto-sync trigger.');
   }
 }
 
@@ -478,9 +569,17 @@ function getUserProjectTrigger() {
 }
 
 function processEmailsToCalendar() {
+  const userProperties = PropertiesService.getUserProperties();
+  const serviceStatus = userProperties.getProperty('SERVICE_STATUS');
+
+  // Skip execution if the service is paused/snoozed
+  if (serviceStatus === 'PAUSED') {
+    Logger.log("Sync skipped: Service is currently snoozed/paused.");
+    return;
+  }
+  
   Logger.log('=== [START] processEmailsToCalendar execution triggered ===');
   
-  const userProperties = PropertiesService.getUserProperties();
   const apiKey = userProperties.getProperty('GEMINI_API_KEY') || PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
   const emailFilterRaw = userProperties.getProperty('EMAIL_FILTER') || '';
   const targetCalendarId = userProperties.getProperty('TARGET_CALENDAR_ID') || '';
@@ -503,6 +602,8 @@ function processEmailsToCalendar() {
     }
   }
 
+  const lastSyncTime = parseInt(userProperties.getProperty('LAST_SYNC_TIMESTAMP') || '0', 10);
+  
   // Handle multi-email filtering (splitting by commas or semicolons)
   let searchQuery = 'is:unread label:inbox';
   if (emailFilterRaw) {
@@ -515,7 +616,6 @@ function processEmailsToCalendar() {
 
   const threads = GmailApp.search(searchQuery);
   Logger.log(`[Gmail] Found ${threads.length} unread thread(s) matching query: "${searchQuery}"`);
-
   if (threads.length === 0) {
     Logger.log('=== [END] No unread emails found matching query. Exiting. ===');
     return;
@@ -528,6 +628,12 @@ function processEmailsToCalendar() {
 
     for (const message of messages) {
       if (!message.isUnread()) continue;
+      
+      const msgDate = message.getDate().getTime();
+      // Skip emails that arrived while the service was paused/snoozed
+      if (lastSyncTime && msgDate <= lastSyncTime) {
+        continue; 
+      }
 
       const subject = message.getSubject();
       const body = message.getPlainBody();
@@ -667,6 +773,7 @@ Return ONLY a valid JSON object:
       }
     }
   }
+  userProperties.setProperty('LAST_SYNC_TIMESTAMP', new Date().getTime().toString());
   Logger.log('=== [END] processEmailsToCalendar execution completed ===');
 }
 
