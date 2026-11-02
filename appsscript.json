@@ -16,8 +16,8 @@
   ],
   "addOns": {
     "common": {
-      "name": "Calendar Assistant",
-      "logoUrl": "https://lh3.googleusercontent.com/d/13q_N6KqGYV5N9JHvCIkgJW_6FX2nyHbD",
+      "name": "LoopDay",
+      "logoUrl": "https://lh3.googleusercontent.com/d/1T2Prqkek1s-kA8vm-SO_oQwOLxpe-Sz-",
       "homepageTrigger": {
         "runFunction": "buildHomepageCard"
       }
