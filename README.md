@@ -1,4 +1,4 @@
-# 📅 Calendar Updating System — AI Academic Assistant
+# 📅 LoopDay — AI Academic Assistant
 
 An intelligent **Google Workspace Add-on** designed for university students to automatically parse academic emails (Canvas, Moodle, university notifications) and sync assignment deadlines and class updates directly into Google Calendar using the **Gemini 3.5 Flash-lite** API.
 
@@ -7,6 +7,7 @@ An intelligent **Google Workspace Add-on** designed for university students to a
 ## ✨ Features
 
 - 🧠 **Multi-Model Gemini Parsing:** Uses `gemini-3.5-flash-lite` (with fallback protection) to extract exact dates, times, and course codes.
+- ⏸️ **Snooze & Stop Service Toggle:** Easily pause background sync from settings; emails received during paused periods are safely ignored when service resumes.
 - 🔄 **Intelligent Rescheduling:** Detects class updates or time changes within a 24-hour window and updates existing calendar events in-place instead of creating duplicates.
 - 🎯 **Separated Dashboard:** View recent `[COURSEWORK]` deadlines and `[CLASSUPDATES]` event entries in clean, split sections.
 - ⚙️ **Customizable Onboarding Wizard:** 3-step setup to configure your Gemini API key, sender email filters (supporting multiple comma-separated addresses), and target export sub-calendar.
@@ -70,6 +71,13 @@ This add-on requests the following scopes in `appsscript.json`:
 - `calendar`: To query existing events for duplicate prevention and create/update schedule entries.
 - `script.external_request`: To securely send email content to Google's Gemini REST API.
 - `script.scriptapp`: To automatically set up the 1-hour background auto-sync trigger.
+
+---
+
+## 📄 Legal & Compliance
+
+- [Privacy Policy](./PRIVACY_POLICY.md)
+- [Terms of Service](./TERMS_OF_SERVICE.md)
 
 ---
 
