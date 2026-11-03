@@ -1,6 +1,6 @@
 # 📅 LoopDay — AI Academic Assistant
 
-An intelligent **Google Workspace Add-on** designed for university students to automatically parse academic emails (Canvas, Moodle, university notifications) and sync assignment deadlines and class updates directly into Google Calendar using the **Gemini 3.5 Flash-lite** API.
+An intelligent **Google Workspace™ Add-on** designed for university students to automatically parse academic emails (Canvas, Moodle, university notifications) and sync assignment deadlines and class updates directly into Google Calendar™ using the **Gemini™** API.
 
 ---
 
@@ -10,7 +10,7 @@ An intelligent **Google Workspace Add-on** designed for university students to a
 - ⏸️ **Snooze & Stop Service Toggle:** Easily pause background sync from settings; emails received during paused periods are safely ignored when service resumes.
 - 🔄 **Intelligent Rescheduling:** Detects class updates or time changes within a 24-hour window and updates existing calendar events in-place instead of creating duplicates.
 - 🎯 **Separated Dashboard:** View recent `[COURSEWORK]` deadlines and `[CLASSUPDATES]` event entries in clean, split sections.
-- ⚙️ **Customizable Onboarding Wizard:** 3-step setup to configure your Gemini API key, sender email filters (supporting multiple comma-separated addresses), and target export sub-calendar.
+- ⚙️ **Customizable Onboarding Wizard:** 3-step setup to configure your Gemini™ API key, sender email filters (supporting multiple comma-separated addresses), and target export sub-calendar.
 - ⏱️ **Automated Background Sync:** Automatically runs on a 1-hour time-driven trigger.
 
 ---
@@ -18,8 +18,8 @@ An intelligent **Google Workspace Add-on** designed for university students to a
 # 🚀 Setup & Installation Guide
 
 ## Prerequisites
-1. A **Google Account** (Gmail or University Workspace).
-2. A free **Gemini API Key** from [Google AI Studio](https://aistudio.google.com/api-keys).
+1. A **Google Account™** (Gmail™ or University Workspace).
+2. A free **Gemini™ API Key** from [Google AI Studio™](https://aistudio.google.com/api-keys).
 
 <img src="https://github.com/user-attachments/assets/201e66bf-95d0-4957-9d63-a6fc1560ced9" alt="Google AI Studio API Key" width="700" />
 
@@ -27,8 +27,8 @@ An intelligent **Google Workspace Add-on** designed for university students to a
 
 ## Installation Steps
 
-1. Open the **Google Apps Script Editor** at [script.google.com](https://script.google.com/).
-2. Create a new project named **Calendar Sync**.
+1. Open the **Google Apps Script Editor™** at [script.google.com](https://script.google.com/).
+2. Create a new project named **LoopDay**.
 3. Copy the contents of [`Code.gs`](./Code.gs) into your script editor into the file named `Code.gs`.
 4. Hover over the gear icon (⚙️) on the left sidebar and click on **Project Settings**.
 
@@ -44,7 +44,7 @@ An intelligent **Google Workspace Add-on** designed for university students to a
 
 <img src="https://github.com/user-attachments/assets/cc640d63-0a2d-46d2-9884-8dafc155b684" alt="Run onHomepage function" width="700" />
 
-9. Click on **Show Advanced** then **Go to Calendar Sync (Unsafe)**, then authorize all permissions.
+9. Click on **Show Advanced** then **Go to LoopDay (Unsafe)**, then authorize all permissions.
 
 <img src="https://github.com/user-attachments/assets/93600e32-1b45-49a3-bf6a-b15bef613622" alt="Authorize permissions" width="700" />
 
@@ -56,9 +56,9 @@ An intelligent **Google Workspace Add-on** designed for university students to a
 
 ## 📅 Finalizing Setup in Google Calendar
 
-Now that you are done with the Apps Script side of things, open up Google Calendar and access the Add-on:
+Now that you are done with the Apps Script™ side of things, open up Google Calendar™ and access the Add-on:
 
-11. Open the sidebar add-on inside Google Calendar or Gmail, enter your Gemini API Key, then complete the 3-step wizard!
+11. Open the sidebar add-on inside Google Calendar™ or Gmail™, enter your Gemini API™ Key, then complete the 3-step wizard!
 
 <img src="https://github.com/user-attachments/assets/de0bea7c-8c6b-48c3-94ea-78c0360ce203" alt="Calendar Sidebar Setup Wizard" width="700" />
 
@@ -69,7 +69,7 @@ Now that you are done with the Apps Script side of things, open up Google Calend
 This add-on requests the following scopes in `appsscript.json`:
 - `gmail.readonly` & `gmail.modify`: To read unread coursework notifications and mark processed emails as read.
 - `calendar`: To query existing events for duplicate prevention and create/update schedule entries.
-- `script.external_request`: To securely send email content to Google's Gemini REST API.
+- `script.external_request`: To securely send email content to Google's Gemini REST API™.
 - `script.scriptapp`: To automatically set up the 1-hour background auto-sync trigger.
 
 ---
@@ -79,10 +79,12 @@ This add-on requests the following scopes in `appsscript.json`:
 - [Privacy Policy](./PRIVACY_POLICY.md)
 - [Terms of Service](./TERMS_OF_SERVICE.md)
 
+*Google Workspace™, Google Calendar™ and Gmail™ are trademarks of Google LLC.*
+
 ---
 
 ## 🛠️ Built With
 
-- **Google Apps Script** (V8 Runtime)
-- **Google CardService** (UI Components)
-- **Google Gemini REST API** (`generativelanguage.googleapis.com`)
+- **Google Apps Script™** (V8 Runtime)
+- **Google CardService™** (UI Components)
+- **Google Gemini REST API™** (`generativelanguage.googleapis.com`)
